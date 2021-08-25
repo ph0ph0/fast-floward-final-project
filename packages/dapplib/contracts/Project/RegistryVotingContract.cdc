@@ -21,11 +21,12 @@ pub contract RegistryVotingContract: RegistryInterface {
         pub var totalProposals: UInt64
         access(contract) fun incrementTotalProposals():UInt64
         access(contract) fun addProposal(proposal: Proposal)
+        access(contract) fun endVotingFor(proposalId: UInt64) 
     }
 
     pub resource interface ITenantBallot {
         pub var totalProposals: UInt64
-        access(contract) fun updateProposalWithVote()
+        access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Int32, voter: Address)
 
     }
    
@@ -42,16 +43,18 @@ pub contract RegistryVotingContract: RegistryInterface {
         access(self) var proposals: [Proposal]
         access(self) var finishedProposals: [Proposal]
 
+        access(self) let voteAdmin: @Admin
+
         access(contract) fun incrementTotalProposals(): UInt64 {
             self.totalProposals = self.totalProposals + 1
             return self.totalProposals
         }
 
         access(contract) fun addProposal(proposal: Proposal) {
-            proposals.append(proposal)
+            self.proposals.append(proposal)
         }
 
-        access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Int8, voter: Address) {
+        access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Int32, voter: Address) {
             for prop in self.proposals {
                 if (prop.proposalId == proposalId) {
                     prop.totalVotes = prop.totalVotes + 1
@@ -62,12 +65,12 @@ pub contract RegistryVotingContract: RegistryInterface {
             }
         }
 
-        access(contract) fun endVotingFor(proposal proposalId: UInt64) {
+        access(contract) fun endVotingFor(proposalId: UInt64) {
             var index = 0
             for prop in self.proposals {
                 if (prop.proposalId == proposalId) {
                     prop.proposalStatus = false
-                    finishedProposals.append(propsals.remove(at: index))
+                    self.finishedProposals.append(self.proposals.remove(at: index))
                     break
                 }
                 index = index + 1
@@ -77,6 +80,13 @@ pub contract RegistryVotingContract: RegistryInterface {
         init() {
             self.totalProposals = 0
             self.proposals = []
+            self.finishedProposals = []
+
+            self.voteAdmin <- create Admin()
+        }
+
+        destroy() {
+            destroy self.voteAdmin
         }
     }
 
@@ -110,13 +120,13 @@ pub contract RegistryVotingContract: RegistryInterface {
         // proposalId is incremented each time a Proposal is created
         pub let proposalId: UInt64
         pub let proposalDescription: String
-        pub let proposalStatus: Bool
+        pub(set) var proposalStatus: Bool
         // votePool: Pool of voters allowed to vote
-        pub let totalVotes: Int32
+        pub(set) var totalVotes: Int32
         // voteCount: Sum of all votes. If positive, majority in favour, if negative, majority against.
-        pub let voteSum: Int32
+        pub(set) var voteSum: Int32
         // votedOnBy: Addresses that have voted
-        pub let votedOnBy: [Address]
+        pub(set) var votedOnBy: [Address]
         // pub let expiry: UInt256?
 
         init(_proposalId: UInt64,  _proposalDescription: String) {
@@ -139,21 +149,21 @@ pub contract RegistryVotingContract: RegistryInterface {
             _tenantRef.addProposal(proposal: proposal)
         }
 
-        access(account) fun issueBallots( proposalId: UInt64, voters:[ Address]) {
-            for voter in voters {
-                // Error: expected token identifier
-                // Is this because each Ballot resource needs a unique ID? 
-                var newBallot = create <- Ballot(_tenantRef: tenantRef, _proposalId: proposalId, _voter: voter) 
-
-                // Move the Ballot to the storage of the address?
-            }
+        access(account) fun issueBallot( proposalId: UInt64, voter: Address): @Ballot {
+            return <- create Ballot(_proposalId: proposalId, _voter: voter) 
         }
 
         access(account) fun closeVotingFor(proposal proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
-            _tenantRef.endVotingFor(proposal: UInt64)
+            _tenantRef.endVotingFor(proposalId: UInt64)
         }
 
-        
+        access(account) fun createAdminRef(): &Admin { 
+            return <- create &Admin
+        }
+
+        access(account) fun createNewAdmin(): @Admin {
+            return <- create Admin()
+        }
     }
 
     // These are issued by the Admin to addresses and allows those addresses to vote on proposals.
@@ -167,7 +177,7 @@ pub contract RegistryVotingContract: RegistryInterface {
                 decision == 1 || decision == -1: "Decision must be 1 (for) or -1 (against)"
             }
             // Update proposal in tenant
-            tenantRef.updateProposalWithVote(proposalId: proposalId, vote: decision)
+            tenantRef.updateProposalWithVote(proposalId: self.proposalId, vote: decision, voter: self.voter)
 
             // Can the Ballot resource destroy itself after voting?
 
