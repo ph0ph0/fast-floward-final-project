@@ -3,15 +3,8 @@ import RegistryService from Project.RegistryService
 
 pub contract RegistryVotingContract: RegistryInterface {
 
-    // Questions:
-    // 1) The tenant registers with the Registry Service and receives an AuthNFT in return. They are then able to use that AuthNFT to access any 
-    // contract in the RS. The question is: Is the Registry Service one huge repo that devs send their Registry Contracts to, or does each 
-    // developer have their own Registry Service?
-    // 2) What do we do with the ballot once created? Move to the address storage of the voter?
-    // 3) Can 'pre' conditions be added to any function in a contract, including those in the Tenant resource?
-    // 4) Does my admin resource need to be restricted when I move it to storage? (https://docs.onflow.org/cadence/msg-sender/#admin-rights)
-    // 5) How do we distribute the Admin resource? How do we provide access?
-    // 6) Can the Ballot resource destroy itself after voting?
+    // ToDo:
+    // 1) Add more events where appropriate
 
     // Events
     //
@@ -85,6 +78,10 @@ pub contract RegistryVotingContract: RegistryInterface {
                 }
                 index = index + 1
             }
+        }
+
+        access(contract) fun getAdminRef(): &Admin {
+            return <- &self.voteAdmin
         }
 
         init() {
@@ -165,10 +162,6 @@ pub contract RegistryVotingContract: RegistryInterface {
 
         access(account) fun closeVotingFor(proposal proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
             _tenantRef.endVotingFor(proposalId: UInt64)
-        }
-
-        access(account) fun createAdminRef(): &Admin { 
-            return <- create &Admin
         }
 
         access(account) fun createNewAdmin(): @Admin {
