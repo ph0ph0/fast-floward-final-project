@@ -13,6 +13,13 @@ pub contract RegistryVotingContract: RegistryInterface {
     // 5) How do we distribute the Admin resource? How do we provide access?
     // 6) Can the Ballot resource destroy itself after voting?
 
+    // Events
+    //
+    pub event ContractInitialized()
+    pub event VoteCast(voter: Address, proposalId: UInt64)
+    pub event ProposalCreated(proposalId: UInt64, proposalDesc: String)
+    pub event VotingClosed(proposalId: UInt64)
+
     // Maps an address (of the customer/DappContract) to the amount
     // of tenants they have for a specific RegistryContract.
     access(contract) var clientTenants: {Address: UInt64}
@@ -52,6 +59,7 @@ pub contract RegistryVotingContract: RegistryInterface {
 
         access(contract) fun addProposal(proposal: Proposal) {
             self.proposals.append(proposal)
+            emit ProposalCreated(proposalId: proposal.proposalId, proposalDesc: proposal.proposalDescription)
         }
 
         access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Int32, voter: Address) {
@@ -60,6 +68,7 @@ pub contract RegistryVotingContract: RegistryInterface {
                     prop.totalVotes = prop.totalVotes + 1
                     prop.voteSum = prop.voteSum + vote
                     prop.votedOnBy.append(voter)
+                    emit VoteCast(voter: voter, proposalId: proposalId)
                     break
                 }
             }
@@ -71,6 +80,7 @@ pub contract RegistryVotingContract: RegistryInterface {
                 if (prop.proposalId == proposalId) {
                     prop.proposalStatus = false
                     self.finishedProposals.append(self.proposals.remove(at: index))
+                    emit VotingClosed(proposalId: prop.proposalId)
                     break
                 }
                 index = index + 1
@@ -197,5 +207,7 @@ pub contract RegistryVotingContract: RegistryInterface {
         // Set Named paths
         self.TenantStoragePath = /storage/RegistryVotingContractTenant
         self.TenantPublicPath = /public/RegistryVotingContractTenant
+
+        emit ContractInitialized()
     }
 }
