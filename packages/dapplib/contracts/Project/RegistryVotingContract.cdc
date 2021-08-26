@@ -38,11 +38,9 @@ pub contract RegistryVotingContract: RegistryInterface {
     // init() function
     // 
     pub resource Tenant: ITenantAdmin, ITenantBallot {
-
         pub var totalProposals: UInt64
         access(self) var proposals: [Proposal]
         access(self) var finishedProposals: [Proposal]
-
         access(self) let voteAdmin: @Admin
 
         access(contract) fun incrementTotalProposals(): UInt64 {
@@ -80,8 +78,8 @@ pub contract RegistryVotingContract: RegistryInterface {
             }
         }
 
-        access(contract) fun getAdminRef(): &Admin {
-            return <- &self.voteAdmin
+        access(contract) fun adminRef(): &Admin {
+            return &self.voteAdmin as &Admin
         }
 
         init() {
@@ -160,8 +158,8 @@ pub contract RegistryVotingContract: RegistryInterface {
             return <- create Ballot(_proposalId: proposalId, _voter: voter) 
         }
 
-        access(account) fun closeVotingFor(proposal proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
-            _tenantRef.endVotingFor(proposalId: UInt64)
+        access(account) fun closeVotingFor(proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
+            _tenantRef.endVotingFor(proposalId: proposalId)
         }
 
         access(account) fun createNewAdmin(): @Admin {
@@ -175,7 +173,7 @@ pub contract RegistryVotingContract: RegistryInterface {
         pub let voter: Address
 
         // decision must be 1 (for) or -1 (against)
-        access(account) fun vote(decision: Int8, tenantRef: &Tenant{ITenantBallot}) {
+        access(account) fun vote(decision: Int32, tenantRef: &Tenant{ITenantBallot}) {
             pre {
                 decision == 1 || decision == -1: "Decision must be 1 (for) or -1 (against)"
             }
@@ -201,6 +199,6 @@ pub contract RegistryVotingContract: RegistryInterface {
         self.TenantStoragePath = /storage/RegistryVotingContractTenant
         self.TenantPublicPath = /public/RegistryVotingContractTenant
 
-        emit ContractInitialized()
+        emit ContractInitialized() 
     }
 }
