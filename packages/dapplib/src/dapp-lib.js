@@ -1,169 +1,206 @@
-'use strict';
-const Blockchain = require('./blockchain');
-const dappConfig = require('./dapp-config.json');
-const ClipboardJS = require('clipboard');
-const BN = require('bn.js'); // Required for injected code
-const manifest = require('../manifest.json');
-const t = require('@onflow/types');
-
+"use strict";
+const Blockchain = require("./blockchain");
+const dappConfig = require("./dapp-config.json");
+const ClipboardJS = require("clipboard");
+const BN = require("bn.js"); // Required for injected code
+const manifest = require("../manifest.json");
+const t = require("@onflow/types");
 
 module.exports = class DappLib {
+  /********** VOTING **********/
 
-
-  /********** FLOW TOKEN **********/
-
-  static async getBalance(data) {
-
-    let result = await Blockchain.get({
-      config: DappLib.getConfig(),
-      roles: {
-      }
-    },
-      'flowtoken_get_balance',
+  static async hasAdminResource(data) {
+    let result = await Blockchain.get(
       {
-        account: { value: data.account, type: t.Address }
-      }
-    );
-
-    return {
-      type: DappLib.DAPP_RESULT_BIG_NUMBER,
-      label: 'FlowToken Balance',
-      result: result.callData
-    }
-  }
-
-  /********** Registry **********/
-
-  static async receiveAuthNFT(data) {
-
-    let result = await Blockchain.post({
-      config: DappLib.getConfig(),
-      roles: {
-        proposer: data.signer,
-      }
-    },
-      'registry_receive_auth_nft'
-    );
-
-    return {
-      type: DappLib.DAPP_RESULT_TX_HASH,
-      label: 'Transaction Hash',
-      result: result.callData.transactionId
-    }
-  }
-
-  static async receiveTenant(data) {
-
-    let result = await Blockchain.post({
-      config: DappLib.getConfig(),
-      roles: {
-        proposer: data.signer,
-      }
-    },
-      'registry_receive_tenant'
-    );
-
-    return {
-      type: DappLib.DAPP_RESULT_TX_HASH,
-      label: 'Transaction Hash',
-      result: result.callData.transactionId
-    }
-  }
-
-  static async hasAuthNFT(data) {
-
-    let result = await Blockchain.get({
-      config: DappLib.getConfig(),
-      roles: {
-
-      }
-    },
-      'registry_has_auth_nft',
+        config: DappLib.getConfig(),
+        roles: {},
+      },
+      "voting_has_admin_resource",
       {
-        tenant: { value: data.tenant, type: t.Address }
+        tenant: { value: data.account, type: t.Address },
       }
     );
 
     return {
       type: DappLib.DAPP_RESULT_BOOLEAN,
-      label: 'Has AuthNFT',
-      result: result.callData
-    }
+      label: "Has AdminResource",
+      result: result.callData,
+    };
+  }
+
+  static async createProposal(data) {
+    let result = await Blockchain.post(
+      {
+        config: DappLib.getConfig(),
+        roles: {
+          proposer: data.signer,
+        },
+      },
+      "voting_create_proposal",
+      {
+        proposalDesc: { value: data.proposalDesc, type: t.String },
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: "Transaction Hash",
+      result: result.callData.transactionId,
+    };
+  }
+
+  /********** FLOW TOKEN **********/
+
+  static async getBalance(data) {
+    let result = await Blockchain.get(
+      {
+        config: DappLib.getConfig(),
+        roles: {},
+      },
+      "flowtoken_get_balance",
+      {
+        account: { value: data.account, type: t.Address },
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_BIG_NUMBER,
+      label: "FlowToken Balance",
+      result: result.callData,
+    };
+  }
+
+  /********** Registry **********/
+
+  static async receiveAuthNFT(data) {
+    let result = await Blockchain.post(
+      {
+        config: DappLib.getConfig(),
+        roles: {
+          proposer: data.signer,
+        },
+      },
+      "registry_receive_auth_nft"
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: "Transaction Hash",
+      result: result.callData.transactionId,
+    };
+  }
+
+  static async receiveTenant(data) {
+    let result = await Blockchain.post(
+      {
+        config: DappLib.getConfig(),
+        roles: {
+          proposer: data.signer,
+        },
+      },
+      "registry_receive_tenant"
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: "Transaction Hash",
+      result: result.callData.transactionId,
+    };
+  }
+
+  static async hasAuthNFT(data) {
+    let result = await Blockchain.get(
+      {
+        config: DappLib.getConfig(),
+        roles: {},
+      },
+      "registry_has_auth_nft",
+      {
+        tenant: { value: data.tenant, type: t.Address },
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_BOOLEAN,
+      label: "Has AuthNFT",
+      result: result.callData,
+    };
   }
 
   /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DAPP LIBRARY  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 
   static get DAPP_STATE_CONTRACT() {
-    return 'dappStateContract'
+    return "dappStateContract";
   }
   static get DAPP_CONTRACT() {
-    return 'dappContract'
+    return "dappContract";
   }
 
   static get DAPP_STATE_CONTRACT_WS() {
-    return 'dappStateContractWs'
+    return "dappStateContractWs";
   }
   static get DAPP_CONTRACT_WS() {
-    return 'dappContractWs'
+    return "dappContractWs";
   }
 
   static get DAPP_RESULT_BIG_NUMBER() {
-    return 'big-number'
+    return "big-number";
   }
 
   static get DAPP_RESULT_ACCOUNT() {
-    return 'account'
+    return "account";
   }
 
   static get DAPP_RESULT_TX_HASH() {
-    return 'tx-hash'
+    return "tx-hash";
   }
 
   static get DAPP_RESULT_IPFS_HASH_ARRAY() {
-    return 'ipfs-hash-array'
+    return "ipfs-hash-array";
   }
 
   static get DAPP_RESULT_SIA_HASH_ARRAY() {
-    return 'sia-hash-array'
+    return "sia-hash-array";
   }
 
   static get DAPP_RESULT_ARRAY() {
-    return 'array'
+    return "array";
   }
 
   static get DAPP_RESULT_OBJECT() {
-    return 'object'
+    return "object";
   }
 
   static get DAPP_RESULT_STRING() {
-    return 'string'
+    return "string";
   }
 
   static get DAPP_RESULT_ERROR() {
-    return 'error'
+    return "error";
   }
 
   static async addEventHandler(contract, event, params, callback) {
-    Blockchain.handleEvent({
-      config: DappLib.getConfig(),
-      contract: contract,
-      params: params || {}
-    },
+    Blockchain.handleEvent(
+      {
+        config: DappLib.getConfig(),
+        contract: contract,
+        params: params || {},
+      },
       event,
       (error, result) => {
         if (error) {
           callback({
             event: event,
             type: DappLib.DAPP_RESULT_ERROR,
-            label: 'Error Message',
-            result: error
+            label: "Error Message",
+            result: error,
           });
         } else {
           callback({
             event: event,
             type: DappLib.DAPP_RESULT_OBJECT,
-            label: 'Event ' + event,
-            result: DappLib.getObjectNamedProperties(result)
+            label: "Event " + event,
+            result: DappLib.getObjectNamedProperties(result),
           });
         }
       }
@@ -171,13 +208,15 @@ module.exports = class DappLib {
   }
 
   static getTransactionHash(t) {
-    if (!t) { return ''; }
-    let value = '';
-    if (typeof t === 'string') {
+    if (!t) {
+      return "";
+    }
+    let value = "";
+    if (typeof t === "string") {
       value = t;
-    } else if (typeof t === 'object') {
-      if (t.hasOwnProperty('transactionHash')) {
-        value = t.transactionHash;       // Ethereum                
+    } else if (typeof t === "object") {
+      if (t.hasOwnProperty("transactionHash")) {
+        value = t.transactionHash; // Ethereum
       } else {
         value = JSON.stringify(t);
       }
@@ -189,35 +228,49 @@ module.exports = class DappLib {
     if (hint) {
       return `<p class="mt-3 grey-text"><strong>Hint:</strong> ${hint}</p>`;
     } else {
-      return '';
+      return "";
     }
   }
 
   static formatNumber(n) {
     var parts = n.toString().split(".");
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return `<strong class="p-1 blue-grey-text number copy-target" style="font-size:1.1rem;" title="${n}">${parts.join(".")}</strong>`;
+    return `<strong class="p-1 blue-grey-text number copy-target" style="font-size:1.1rem;" title="${n}">${parts.join(
+      "."
+    )}</strong>`;
   }
 
   static formatAccount(a) {
-    return `<strong class="green accent-1 p-1 blue-grey-text number copy-target" title="${a}">${DappLib.toCondensed(a, 6, 4)}</strong>${DappLib.addClippy(a)}`;
+    return `<strong class="green accent-1 p-1 blue-grey-text number copy-target" title="${a}">${DappLib.toCondensed(
+      a,
+      6,
+      4
+    )}</strong>${DappLib.addClippy(a)}`;
   }
 
   static formatTxHash(a) {
     let value = DappLib.getTransactionHash(a);
-    return `<strong class="teal lighten-5 p-1 blue-grey-text number copy-target" title="${value}">${DappLib.toCondensed(value, 6, 4)}</strong>${DappLib.addClippy(value)}`;
+    return `<strong class="teal lighten-5 p-1 blue-grey-text number copy-target" title="${value}">${DappLib.toCondensed(
+      value,
+      6,
+      4
+    )}</strong>${DappLib.addClippy(value)}`;
   }
 
   static formatBoolean(a) {
-    return (a ? 'YES' : 'NO');
+    return a ? "YES" : "NO";
   }
 
   static formatText(a, copyText) {
-    if (!a) { return; }
-    if (a.startsWith('<')) {
+    if (!a) {
+      return;
+    }
+    if (a.startsWith("<")) {
       return a;
     }
-    return `<span class="copy-target" title="${copyText ? copyText : a}">${a}</span>${DappLib.addClippy(copyText ? copyText : a)}`;
+    return `<span class="copy-target" title="${
+      copyText ? copyText : a
+    }">${a}</span>${DappLib.addClippy(copyText ? copyText : a)}`;
   }
 
   static formatStrong(a) {
@@ -230,15 +283,15 @@ module.exports = class DappLib {
 
   static formatObject(a) {
     let data = [];
-    let labels = ['Item', 'Value'];
-    let keys = ['item', 'value'];
-    let formatters = ['Strong', 'Text-20-5']; // 'Strong': Bold, 'Text-20-5': Compress a 20 character long string down to 5
-    let reg = new RegExp('^\\d+$'); // only digits
+    let labels = ["Item", "Value"];
+    let keys = ["item", "value"];
+    let formatters = ["Strong", "Text-20-5"]; // 'Strong': Bold, 'Text-20-5': Compress a 20 character long string down to 5
+    let reg = new RegExp("^\\d+$"); // only digits
     for (let key in a) {
       if (!reg.test(key)) {
         data.push({
           item: key.substr(0, 1).toUpperCase() + key.substr(1),
-          value: a[key]
+          value: a[key],
         });
       }
     }
@@ -246,51 +299,59 @@ module.exports = class DappLib {
   }
 
   static formatArray(h, dataFormatters, dataLabels, dataKeys) {
-
     let output = '<table class="table table-striped">';
 
     if (dataLabels) {
-      output += '<thead><tr>';
+      output += "<thead><tr>";
       for (let d = 0; d < dataLabels.length; d++) {
         output += `<th scope="col">${dataLabels[d]}</th>`;
       }
-      output += '</tr></thead>';
+      output += "</tr></thead>";
     }
-    output += '<tbody>';
+    output += "<tbody>";
     h.map((item) => {
-      output += '<tr>';
+      output += "<tr>";
       for (let d = 0; d < dataFormatters.length; d++) {
         let text = String(dataKeys && dataKeys[d] ? item[dataKeys[d]] : item);
         let copyText = dataKeys && dataKeys[d] ? item[dataKeys[d]] : item;
-        if (text.startsWith('<')) {
-          output += (d == 0 ? '<th scope="row">' : '<td>') + text + (d == 0 ? '</th>' : '</td>');
+        if (text.startsWith("<")) {
+          output +=
+            (d == 0 ? '<th scope="row">' : "<td>") +
+            text +
+            (d == 0 ? "</th>" : "</td>");
         } else {
-          let formatter = 'format' + dataFormatters[d];
-          if (formatter.startsWith('formatText')) {
-            let formatterFrags = formatter.split('-');
+          let formatter = "format" + dataFormatters[d];
+          if (formatter.startsWith("formatText")) {
+            let formatterFrags = formatter.split("-");
             if (formatterFrags.length === 3) {
-              text = DappLib.toCondensed(text, Number(formatterFrags[1]), Number(formatterFrags[2]));
+              text = DappLib.toCondensed(
+                text,
+                Number(formatterFrags[1]),
+                Number(formatterFrags[2])
+              );
             } else if (formatterFrags.length === 2) {
               text = DappLib.toCondensed(text, Number(formatterFrags[1]));
             }
             formatter = formatterFrags[0];
           }
-          output += (d == 0 ? '<th scope="row">' : '<td>') + DappLib[formatter](text, copyText) + (d == 0 ? '</th>' : '</td>');
+          output +=
+            (d == 0 ? '<th scope="row">' : "<td>") +
+            DappLib[formatter](text, copyText) +
+            (d == 0 ? "</th>" : "</td>");
         }
       }
-      output += '</tr>';
-    })
-    output += '</tbody></table>';
+      output += "</tr>";
+    });
+    output += "</tbody></table>";
     return output;
   }
 
   static getFormattedResultNode(retVal, key) {
-
-    let returnKey = 'result';
-    if (key && (key !== null) && (key !== 'null') && (typeof (key) === 'string')) {
+    let returnKey = "result";
+    if (key && key !== null && key !== "null" && typeof key === "string") {
       returnKey = key;
     }
-    let formatted = '';
+    let formatted = "";
     switch (retVal.type) {
       case DappLib.DAPP_RESULT_BIG_NUMBER:
         formatted = DappLib.formatNumber(retVal[returnKey].toString(10));
@@ -307,31 +368,29 @@ module.exports = class DappLib {
       case DappLib.DAPP_RESULT_IPFS_HASH_ARRAY:
         formatted = DappLib.formatArray(
           retVal[returnKey],
-          ['TxHash', 'IpfsHash', 'Text-10-5'], //Formatter
-          ['Transaction', 'IPFS URL', 'Doc Id'], //Label
-          ['transactionHash', 'ipfsHash', 'docId'] //Values
+          ["TxHash", "IpfsHash", "Text-10-5"], //Formatter
+          ["Transaction", "IPFS URL", "Doc Id"], //Label
+          ["transactionHash", "ipfsHash", "docId"] //Values
         );
         break;
       case DappLib.DAPP_RESULT_SIA_HASH_ARRAY:
         formatted = DappLib.formatArray(
           retVal[returnKey],
-          ['TxHash', 'SiaHash', 'Text-10-5'], //Formatter
-          ['Transaction', 'Sia URL', 'Doc Id'], //Label
-          ['transactionHash', 'docId', 'docId'] //Values
+          ["TxHash", "SiaHash", "Text-10-5"], //Formatter
+          ["Transaction", "Sia URL", "Doc Id"], //Label
+          ["transactionHash", "docId", "docId"] //Values
         );
         break;
       case DappLib.DAPP_RESULT_ARRAY:
         formatted = DappLib.formatArray(
           retVal[returnKey],
-          retVal.formatter ? retVal.formatter : ['Text'],
+          retVal.formatter ? retVal.formatter : ["Text"],
           null,
           null
         );
         break;
       case DappLib.DAPP_RESULT_STRING:
-        formatted = DappLib.formatPlain(
-          retVal[returnKey]
-        );
+        formatted = DappLib.formatPlain(retVal[returnKey]);
         break;
       case DappLib.DAPP_RESULT_OBJECT:
         formatted = DappLib.formatObject(retVal[returnKey]);
@@ -341,22 +400,31 @@ module.exports = class DappLib {
         break;
     }
 
-    let resultNode = document.createElement('div');
-    resultNode.className = `note text-xs ${retVal.type === DappLib.DAPP_RESULT_ERROR ? 'bg-red-400' : 'bg-green-400'} m-3 p-3`;
-    let closeMarkup = '<div class="float-right" onclick="this.parentNode.parentNode.removeChild(this.parentNode)" title="Dismiss" class="text-right mb-1 mr-2" style="cursor:pointer;">X</div>';
-    resultNode.innerHTML = closeMarkup + `${retVal.type === DappLib.DAPP_RESULT_ERROR ? '☹️' : '👍️'} ` + (Array.isArray(retVal[returnKey]) ? 'Result' : retVal.label) + ': ' + formatted + DappLib.formatHint(retVal.hint);
+    let resultNode = document.createElement("div");
+    resultNode.className = `note text-xs ${
+      retVal.type === DappLib.DAPP_RESULT_ERROR ? "bg-red-400" : "bg-green-400"
+    } m-3 p-3`;
+    let closeMarkup =
+      '<div class="float-right" onclick="this.parentNode.parentNode.removeChild(this.parentNode)" title="Dismiss" class="text-right mb-1 mr-2" style="cursor:pointer;">X</div>';
+    resultNode.innerHTML =
+      closeMarkup +
+      `${retVal.type === DappLib.DAPP_RESULT_ERROR ? "☹️" : "👍️"} ` +
+      (Array.isArray(retVal[returnKey]) ? "Result" : retVal.label) +
+      ": " +
+      formatted +
+      DappLib.formatHint(retVal.hint);
     // Wire-up clipboard copy
-    new ClipboardJS('.copy-target', {
+    new ClipboardJS(".copy-target", {
       text: function (trigger) {
-        return trigger.getAttribute('data-copy');
-      }
+        return trigger.getAttribute("data-copy");
+      },
     });
 
     return resultNode;
   }
 
   static getObjectNamedProperties(a) {
-    let reg = new RegExp('^\\d+$'); // only digits
+    let reg = new RegExp("^\\d+$"); // only digits
     let newObj = {};
     for (let key in a) {
       if (!reg.test(key)) {
@@ -388,12 +456,11 @@ module.exports = class DappLib {
   }
 
   static fromAscii(str, padding) {
-
     if (Array.isArray(str)) {
       return DappLib.arrayToHex(str);
     }
 
-    if (str.startsWith('0x') || !padding) {
+    if (str.startsWith("0x") || !padding) {
       return str;
     }
 
@@ -401,21 +468,20 @@ module.exports = class DappLib {
       str = str.substr(0, padding);
     }
 
-    var hex = '0x';
+    var hex = "0x";
     for (var i = 0; i < str.length; i++) {
       var code = str.charCodeAt(i);
       var n = code.toString(16);
-      hex += n.length < 2 ? '0' + n : n;
+      hex += n.length < 2 ? "0" + n : n;
     }
-    return hex + '0'.repeat(padding * 2 - hex.length + 2);
-  };
-
+    return hex + "0".repeat(padding * 2 - hex.length + 2);
+  }
 
   static toAscii(hex) {
-    var str = '',
+    var str = "",
       i = 0,
       l = hex.length;
-    if (hex.substring(0, 2) === '0x') {
+    if (hex.substring(0, 2) === "0x") {
       i = 2;
     }
     for (; i < l; i += 2) {
@@ -424,21 +490,25 @@ module.exports = class DappLib {
       str += String.fromCharCode(code);
     }
     return str;
-  };
+  }
 
   static arrayToHex(bytes) {
     if (Array.isArray(bytes)) {
-      return '0x' +
-        Array.prototype.map.call(bytes, function (byte) {
-          return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-        }).join('')
+      return (
+        "0x" +
+        Array.prototype.map
+          .call(bytes, function (byte) {
+            return ("0" + (byte & 0xff).toString(16)).slice(-2);
+          })
+          .join("")
+      );
     } else {
       return bytes;
     }
   }
 
   static hexToArray(hex) {
-    if ((typeof hex === 'string') && (hex.beginsWith('0x'))) {
+    if (typeof hex === "string" && hex.beginsWith("0x")) {
       let bytes = [];
       for (let i = 0; i < hex.length; i += 2) {
         bytes.push(parseInt(hex.substr(i, 2), 16));
@@ -450,7 +520,9 @@ module.exports = class DappLib {
   }
 
   static toCondensed(s, begin, end) {
-    if (!s) { return; }
+    if (!s) {
+      return;
+    }
     if (s.length && s.length <= begin + end) {
       return s;
     } else {
@@ -468,8 +540,9 @@ module.exports = class DappLib {
 
   // https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
   static getUniqueId() {
-    return 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[x]/g, function (c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/[x]/g, function (c) {
+      var r = (Math.random() * 16) | 0,
+        v = c == "x" ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -484,30 +557,20 @@ module.exports = class DappLib {
   // before each test run. Look for the following line in test scripts to see it done:
   //  DappLib.getConfig = Function(`return ${ JSON.stringify(DappLib.getTestConfig(testDappStateContract, testDappContract, testAccounts))}`);
   static getTestConfig(testDappStateContract, testDappContract, testAccounts) {
-
-    return Object.assign(
-      {},
-      dappConfig,
-      {
-        dappStateContractAddress: testDappStateContract.address,
-        dappContractAddress: testDappContract.address,
-        accounts: testAccounts,
-        owner: testAccounts[0],
-        admins: [
-          testAccounts[1],
-          testAccounts[2],
-          testAccounts[3]
-        ],
-        users: [
-          testAccounts[4],
-          testAccounts[5],
-          testAccounts[6],
-          testAccounts[7],
-          testAccounts[8]
-        ]
-        ///+test
-      }
-    );
+    return Object.assign({}, dappConfig, {
+      dappStateContractAddress: testDappStateContract.address,
+      dappContractAddress: testDappContract.address,
+      accounts: testAccounts,
+      owner: testAccounts[0],
+      admins: [testAccounts[1], testAccounts[2], testAccounts[3]],
+      users: [
+        testAccounts[4],
+        testAccounts[5],
+        testAccounts[6],
+        testAccounts[7],
+        testAccounts[8],
+      ],
+      ///+test
+    });
   }
-
-}
+};

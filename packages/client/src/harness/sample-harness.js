@@ -76,6 +76,29 @@ export default class SampleHarness extends LitElement {
         >
           <account-widget field="account" label="Account"> </account-widget>
         </action-card>
+        <!-- Voting Cards --->
+        <action-card
+          title="Voting - Has Admin Resource"
+          description="Checks to see if the account has an Admin resource"
+          action="hasAdminResource"
+          method="get"
+          fields="account"
+        >
+          <account-widget field="account" label="Account"> </account-widget>
+        </action-card>
+        <action-card
+          title="Create proposal"
+          description="Create a new proposal to vote on"
+          action="createProposal"
+          method="post"
+          fields="proposalDesc"
+        >
+          <text-widget
+            field="proposalDesc"
+            label="Description"
+            placeholder="All in favour of a 3 day weekend!"
+          ></text-widget>
+        </action-card>
       </page-body>
       <page-panel id="resultPanel"></page-panel>
     `;

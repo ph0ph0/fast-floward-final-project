@@ -15,7 +15,7 @@ transaction() {
       // borrow a reference to the AuthNFT in account storage
       let authNFTRef = signer.borrow<&RegistryService.AuthNFT>(from: RegistryService.AuthStoragePath)
                         ?? panic("Could not borrow the AuthNFT")
-      
+
       // save the new Tenant resource from RegistryVotingContract to account storage
       signer.save(<-RegistryVotingContract.instance(authNFT: authNFTRef), to: RegistryVotingContract.TenantStoragePath)
 
@@ -26,7 +26,7 @@ transaction() {
       // If you add resource interfaces that Tenant must implement, you can
       // add those here and then uncomment the line below.
       // 
-      // signer.link<&RegistryVotingContract.Tenant>(RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
+      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin, RegistryVotingContract.ITenantBallot}>(RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
     }
   }
 

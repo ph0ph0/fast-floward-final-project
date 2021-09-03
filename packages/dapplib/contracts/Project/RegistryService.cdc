@@ -39,7 +39,7 @@ pub contract RegistryService {
     //
     // It returns a AuthNFT.
     //
-    pub fun register(): @AuthNFT {        
+    pub fun register(): @AuthNFT {
         return <- create AuthNFT()
     }
 

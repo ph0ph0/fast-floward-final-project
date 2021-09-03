@@ -22,6 +22,7 @@ pub contract RegistryVotingContract: RegistryInterface {
         access(contract) fun incrementTotalProposals():UInt64
         access(contract) fun addProposal(proposal: Proposal)
         access(contract) fun endVotingFor(proposalId: UInt64) 
+        access(contract) fun adminRef(): &Admin
     }
 
     pub resource interface ITenantBallot {
@@ -120,6 +121,10 @@ pub contract RegistryVotingContract: RegistryInterface {
     //
     pub let TenantStoragePath: StoragePath
     pub let TenantPublicPath: PublicPath
+    pub let AdminStoragePath: StoragePath
+    pub let AdminPublicPath: PublicPath
+    pub let BallotStoragePath: StoragePath
+    pub let BallotPublicPath: PublicPath
 
     pub struct Proposal {
         // proposalId is incremented each time a Proposal is created
@@ -198,6 +203,10 @@ pub contract RegistryVotingContract: RegistryInterface {
         // Set Named paths
         self.TenantStoragePath = /storage/RegistryVotingContractTenant
         self.TenantPublicPath = /public/RegistryVotingContractTenant
+        self.AdminStoragePath = /storage/VotingAdmin
+        self.AdminPublicPath = /public/VotingAdmin
+        self.BallotStoragePath = /storage/VotingBallot
+        self.BallotPublicPath = /public/VotingBallot
 
         emit ContractInitialized() 
     }

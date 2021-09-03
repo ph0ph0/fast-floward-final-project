@@ -24,6 +24,33 @@ module.exports = class DappScripts {
 		`;
 	}
 
+	static voting_has_admin_resource() {
+		return fcl.script`
+				import RegistryService from 0x01cf0e2f2f715450
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// Checks to see if an account has an Admin resource and therefore a Tenant as well
+				
+				pub fun main(account: Address): Bool {
+				    let tenantRef = getAccount(account).getCapability(RegistryVotingContract.TenantPublicPath)
+				                        .borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>()
+				
+				    if tenantRef == nil {
+				        return false
+				    }
+				
+				    let adminRef = tenantRef.adminRef()
+				
+				    if adminRef == nil {
+				        return false
+				    } else {
+				        return true
+				    }
+				    return false
+				} 
+		`;
+	}
+
 	static registry_has_auth_nft() {
 		return fcl.script`
 				import RegistryService from 0x01cf0e2f2f715450

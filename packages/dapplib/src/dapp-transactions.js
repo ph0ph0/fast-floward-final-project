@@ -58,7 +58,7 @@ module.exports = class DappTransactions {
 				      // borrow a reference to the AuthNFT in account storage
 				      let authNFTRef = signer.borrow<&RegistryService.AuthNFT>(from: RegistryService.AuthStoragePath)
 				                        ?? panic("Could not borrow the AuthNFT")
-				      
+				
 				      // save the new Tenant resource from RegistryVotingContract to account storage
 				      signer.save(<-RegistryVotingContract.instance(authNFT: authNFTRef), to: RegistryVotingContract.TenantStoragePath)
 				
@@ -69,7 +69,7 @@ module.exports = class DappTransactions {
 				      // If you add resource interfaces that Tenant must implement, you can
 				      // add those here and then uncomment the line below.
 				      // 
-				      // signer.link<&RegistryVotingContract.Tenant>(RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
+				      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin, RegistryVotingContract.ITenantBallot}>(RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
 				    }
 				  }
 				
@@ -78,6 +78,37 @@ module.exports = class DappTransactions {
 				  }
 				}
 				
+		`;
+	}
+
+	static voting_create_proposal() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// Allows an Admin to create a new proposal.
+				
+				transaction(proposalDesc: String) {
+				
+				    let tenantRef: &RegistryVotingContract.Tenant{ITenantAdmin}
+				    let adminRef: &RegistryVotingContract.Admin
+				
+				    prepare(acct: AuthAccount){
+				
+				        // If this is our first proposal, then we need to move our
+				
+				        self.tenantRef = acct.borrow<&RegistryVotingContract.Tenant{ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
+				            ?? panic("Couldn't borrow the tenant resource")
+				
+				        self.adminRef = acct.borrow<&RegistryVotingContract.Admin>(from: RegistryVotingContract.AdminStoragePath)
+				            ?? panic("Couldn't borrow the admin resource")
+				    }
+				
+				    execute{
+				        self.tenantRef.createProposal(_tenantRef: tenantRef, proposalDes: proposalDesc)
+				    }
+				
+				    post{}
+				}
 		`;
 	}
 
