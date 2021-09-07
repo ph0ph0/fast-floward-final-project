@@ -43,4 +43,19 @@ module.exports = class DappScripts {
 		`;
 	}
 
+	static voting_list_proposals() {
+		return fcl.script`
+				
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// lists all the proposals for a given Tenant resource that is associated with an account.
+				
+				pub function main(account: address) {
+				
+				    if let tenantRef = getAccount
+				
+				}
+		`;
+	}
+
 }

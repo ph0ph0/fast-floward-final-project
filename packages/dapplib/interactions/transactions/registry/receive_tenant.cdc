@@ -19,6 +19,8 @@ transaction() {
       // save the new Tenant resource from RegistryVotingContract to account storage
       signer.save(<-RegistryVotingContract.instance(authNFT: authNFTRef), to: RegistryVotingContract.TenantStoragePath)
 
+      log(signer)
+
       // link the Tenant resource to the public
       //
       // NOTE: this is commented out for now because it is dangerous to link
@@ -26,7 +28,7 @@ transaction() {
       // If you add resource interfaces that Tenant must implement, you can
       // add those here and then uncomment the line below.
       // 
-      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin, RegistryVotingContract.ITenantBallot}>
+      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantPublic}>
         (RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
     }
   }

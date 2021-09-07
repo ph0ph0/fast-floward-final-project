@@ -22,7 +22,7 @@ pub contract RegistryVotingContract: RegistryInterface {
         access(contract) fun incrementTotalProposals():UInt64
         access(contract) fun addProposal(proposal: Proposal)
         access(contract) fun endVotingFor(proposalId: UInt64) 
-        access(contract) fun listAllProposals(): [Proposal]
+        
         pub fun adminRef(): &Admin
     }
 
@@ -30,6 +30,10 @@ pub contract RegistryVotingContract: RegistryInterface {
         pub var totalProposals: UInt64
         access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Int32, voter: Address)
 
+    }
+
+    pub resource interface ITenantPublic {
+        access(contract) fun listAllProposals(): [Proposal]
     }
    
     // Tenant
@@ -39,7 +43,7 @@ pub contract RegistryVotingContract: RegistryInterface {
     // that would normally be saved to account storage in the contract's
     // init() function
     // 
-    pub resource Tenant: ITenantAdmin, ITenantBallot {
+    pub resource Tenant: ITenantAdmin, ITenantBallot, ITenantPublic {
         pub var totalProposals: UInt64
         access(self) var proposals: [Proposal]
         access(self) var finishedProposals: [Proposal]
@@ -155,6 +159,13 @@ pub contract RegistryVotingContract: RegistryInterface {
         }
     }
 
+    // Public Tenant functions
+
+    pub fun listProposals(_tenantRef: &Tenant{ITenantPublic}): [Proposal] {
+            let proposals = _tenantRef.listAllProposals()
+            return proposals
+        }
+
     // Admin resource is what the owner uses to control the proposals and the voting.
     pub resource Admin {
         pub fun createProposal(_tenantRef: &Tenant{ITenantAdmin}, proposalDes: String) {
@@ -170,11 +181,6 @@ pub contract RegistryVotingContract: RegistryInterface {
 
         pub fun closeVotingFor(proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
             _tenantRef.endVotingFor(proposalId: proposalId)
-        }
-
-        pub fun listProposals(_tenantRef: &Tenant{ITenantAdmin}): [Proposal] {
-            let proposals = _tenantRef.listAllProposals()
-            return proposals
         }
 
         pub fun createNewAdmin(): @Admin {

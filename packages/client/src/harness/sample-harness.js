@@ -90,6 +90,15 @@ export default class SampleHarness extends LitElement {
             placeholder="All in favour of a 3 day weekend!"
           ></text-widget>
         </action-card>
+        <action-card
+          title="List all Proposals"
+          description="List the live proposals associated with an account"
+          action="listProposals"
+          method="get"
+          fields="account"
+        >
+          <account-widget field="account" label="Account"> </account-widget>
+        </action-card>
       </page-body>
       <page-panel id="resultPanel"></page-panel>
     `;

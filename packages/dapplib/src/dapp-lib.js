@@ -30,6 +30,25 @@ module.exports = class DappLib {
     };
   }
 
+  static async listProposals(data) {
+    let result = await Blockchain.get(
+      {
+        config: DappLib.getConfig(),
+        roles: {},
+      },
+      "voting_list_proposals",
+      {
+        account: { value: data.account, type: t.Address },
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_BIG_NUMBER,
+      label: "Proposals",
+      result: result.callData,
+    };
+  }
+
   /********** FLOW TOKEN **********/
 
   static async getBalance(data) {
