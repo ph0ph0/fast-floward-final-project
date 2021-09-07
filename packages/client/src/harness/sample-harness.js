@@ -78,15 +78,6 @@ export default class SampleHarness extends LitElement {
         </action-card>
         <!-- Voting Cards --->
         <action-card
-          title="Voting - Has Admin Resource"
-          description="Checks to see if the account has an Admin resource"
-          action="hasAdminResource"
-          method="get"
-          fields="account"
-        >
-          <account-widget field="account" label="Account"> </account-widget>
-        </action-card>
-        <action-card
           title="Create proposal"
           description="Create a new proposal to vote on"
           action="createProposal"

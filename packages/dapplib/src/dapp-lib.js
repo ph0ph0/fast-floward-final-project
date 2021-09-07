@@ -9,25 +9,6 @@ const t = require("@onflow/types");
 module.exports = class DappLib {
   /********** VOTING **********/
 
-  static async hasAdminResource(data) {
-    let result = await Blockchain.get(
-      {
-        config: DappLib.getConfig(),
-        roles: {},
-      },
-      "voting_has_admin_resource",
-      {
-        tenant: { value: data.account, type: t.Address },
-      }
-    );
-
-    return {
-      type: DappLib.DAPP_RESULT_BOOLEAN,
-      label: "Has AdminResource",
-      result: result.callData,
-    };
-  }
-
   static async createProposal(data) {
     let result = await Blockchain.post(
       {

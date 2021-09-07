@@ -22,7 +22,8 @@ pub contract RegistryVotingContract: RegistryInterface {
         access(contract) fun incrementTotalProposals():UInt64
         access(contract) fun addProposal(proposal: Proposal)
         access(contract) fun endVotingFor(proposalId: UInt64) 
-        access(contract) fun adminRef(): &Admin
+        access(contract) fun listAllProposals(): [Proposal]
+        pub fun adminRef(): &Admin
     }
 
     pub resource interface ITenantBallot {
@@ -43,6 +44,10 @@ pub contract RegistryVotingContract: RegistryInterface {
         access(self) var proposals: [Proposal]
         access(self) var finishedProposals: [Proposal]
         access(self) let voteAdmin: @Admin
+
+        access(contract) fun listAllProposals(): [Proposal] {
+            return self.proposals
+        }
 
         access(contract) fun incrementTotalProposals(): UInt64 {
             self.totalProposals = self.totalProposals + 1
@@ -79,7 +84,7 @@ pub contract RegistryVotingContract: RegistryInterface {
             }
         }
 
-        access(contract) fun adminRef(): &Admin {
+        pub fun adminRef(): &Admin {
             return &self.voteAdmin as &Admin
         }
 
@@ -152,24 +157,30 @@ pub contract RegistryVotingContract: RegistryInterface {
 
     // Admin resource is what the owner uses to control the proposals and the voting.
     pub resource Admin {
-        access(account) fun createProposal(_tenantRef: &Tenant{ITenantAdmin}, proposalDes: String) {
+        pub fun createProposal(_tenantRef: &Tenant{ITenantAdmin}, proposalDes: String) {
             let proposalId = _tenantRef.incrementTotalProposals()
             let proposal = Proposal(_proposalId: proposalId, _proposalDescription: proposalDes)
 
             _tenantRef.addProposal(proposal: proposal)
         }
 
-        access(account) fun issueBallot( proposalId: UInt64, voter: Address): @Ballot {
+        pub fun issueBallot( proposalId: UInt64, voter: Address): @Ballot {
             return <- create Ballot(_proposalId: proposalId, _voter: voter) 
         }
 
-        access(account) fun closeVotingFor(proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
+        pub fun closeVotingFor(proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
             _tenantRef.endVotingFor(proposalId: proposalId)
         }
 
-        access(account) fun createNewAdmin(): @Admin {
+        pub fun listProposals(_tenantRef: &Tenant{ITenantAdmin}): [Proposal] {
+            let proposals = _tenantRef.listAllProposals()
+            return proposals
+        }
+
+        pub fun createNewAdmin(): @Admin {
             return <- create Admin()
         }
+
     }
 
     // These are issued by the Admin to addresses and allows those addresses to vote on proposals.

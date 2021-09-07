@@ -69,7 +69,8 @@ module.exports = class DappTransactions {
 				      // If you add resource interfaces that Tenant must implement, you can
 				      // add those here and then uncomment the line below.
 				      // 
-				      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin, RegistryVotingContract.ITenantBallot}>(RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
+				      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin, RegistryVotingContract.ITenantBallot}>
+				        (RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
 				    }
 				  }
 				
@@ -89,25 +90,24 @@ module.exports = class DappTransactions {
 				
 				transaction(proposalDesc: String) {
 				
-				    let tenantRef: &RegistryVotingContract.Tenant{ITenantAdmin}
+				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
 				    let adminRef: &RegistryVotingContract.Admin
 				
 				    prepare(acct: AuthAccount){
 				
-				        // If this is our first proposal, then we need to move our
+				        if (proposalDesc.length == 0) {
+				            panic("Proposal description must be provided")
+				        }
 				
-				        self.tenantRef = acct.borrow<&RegistryVotingContract.Tenant{ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
+				        self.tenantRef = acct.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
 				            ?? panic("Couldn't borrow the tenant resource")
 				
-				        self.adminRef = acct.borrow<&RegistryVotingContract.Admin>(from: RegistryVotingContract.AdminStoragePath)
-				            ?? panic("Couldn't borrow the admin resource")
+				        self.adminRef = self.tenantRef.adminRef()
 				    }
 				
 				    execute{
-				        self.tenantRef.createProposal(_tenantRef: tenantRef, proposalDes: proposalDesc)
+				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
 				    }
-				
-				    post{}
 				}
 		`;
 	}
