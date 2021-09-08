@@ -13,7 +13,7 @@ transaction(proposalId: UInt64, recipient: Address) {
 
     execute {
         let ballot <- self.adminRef.issueBallot(_tenantRef: self.tenantRef, proposalId: proposalId, voter: recipient)
-        getAccount(recipient).save(<- ballot, to: RegistryVotingContract.BallotPublicPath)
+        getAccount(recipient).save(<- ballot, to: RegistryVotingContract.BallotStoragePath)
 
         log("saved ballot to storage")
     }
