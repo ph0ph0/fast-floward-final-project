@@ -7,13 +7,13 @@ transaction(proposalDesc: String) {
     let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
     let adminRef: &RegistryVotingContract.Admin
 
-    prepare(acct: AuthAccount){
+    prepare(signer: AuthAccount){
 
         if (proposalDesc.length == 0) {
             panic("Proposal description must be provided")
         }
 
-        self.tenantRef = acct.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
+        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
             ?? panic("Couldn't borrow the tenant resource")
 
         self.adminRef = self.tenantRef.adminRef()

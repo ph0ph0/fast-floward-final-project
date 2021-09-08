@@ -82,8 +82,9 @@ export default class SampleHarness extends LitElement {
           description="Create a new proposal to vote on"
           action="createProposal"
           method="post"
-          fields="proposalDesc"
+          fields="proposalDesc signer"
         >
+          <account-widget field="signer" label="Account"> </account-widget>
           <text-widget
             field="proposalDesc"
             label="Description"
@@ -98,6 +99,21 @@ export default class SampleHarness extends LitElement {
           fields="account"
         >
           <account-widget field="account" label="Account"> </account-widget>
+        </action-card>
+        <action-card
+          title="Issue Ballot"
+          description="Issue Ballot to another user"
+          action="issueBallot"
+          method="post"
+          fields="signer recipeint proposalId"
+        >
+          <account-widget field="signer" label="Issuer"> </account-widget>
+          <account-widget field="recipient" label="Recipient"> </account-widget>
+          <text-widget
+            field="proposalId"
+            label="Proposal ID"
+            placeholder="ID of proposal to issue ballot for"
+          ></text-widget>
         </action-card>
       </page-body>
       <page-panel id="resultPanel"></page-panel>

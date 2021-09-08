@@ -209,6 +209,9 @@ pub contract RegistryVotingContract: RegistryInterface {
         init(_proposalId: UInt64, _voter: Address) {
             self.proposalId = _proposalId
             self.voter = _voter
+
+            // Need to save this to the storage of the new owner when initialised.
+            
         }
 
     }

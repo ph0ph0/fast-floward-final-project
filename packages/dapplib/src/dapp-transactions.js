@@ -62,8 +62,6 @@ module.exports = class DappTransactions {
 				      // save the new Tenant resource from RegistryVotingContract to account storage
 				      signer.save(<-RegistryVotingContract.instance(authNFT: authNFTRef), to: RegistryVotingContract.TenantStoragePath)
 				
-				      log(signer)
-				
 				      // link the Tenant resource to the public
 				      //
 				      // NOTE: this is commented out for now because it is dangerous to link
@@ -95,13 +93,13 @@ module.exports = class DappTransactions {
 				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
 				    let adminRef: &RegistryVotingContract.Admin
 				
-				    prepare(acct: AuthAccount){
+				    prepare(signer: AuthAccount){
 				
 				        if (proposalDesc.length == 0) {
 				            panic("Proposal description must be provided")
 				        }
 				
-				        self.tenantRef = acct.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
+				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
 				            ?? panic("Couldn't borrow the tenant resource")
 				
 				        self.adminRef = self.tenantRef.adminRef()
@@ -110,6 +108,26 @@ module.exports = class DappTransactions {
 				    execute{
 				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
 				    }
+				}
+		`;
+	}
+
+	static voting_issue_ballot() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// Allows an account with an Admin resource to issue a Ballot to another user.
+				
+				transaction(proposalId: UInt64, recipient: Address) {
+				    let tenantRef: RegistryVotingContract.Tenant{ITenantAdmin}
+				    prepare(signer: AuthAccount) {
+				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath)
+				    }
+				
+				    execute {
+				        self.tenantRef.issueBallot(proposalId: proposalId, voter: recipient)
+				    }
+				
 				}
 		`;
 	}

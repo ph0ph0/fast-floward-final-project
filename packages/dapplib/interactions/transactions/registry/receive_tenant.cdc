@@ -19,8 +19,6 @@ transaction() {
       // save the new Tenant resource from RegistryVotingContract to account storage
       signer.save(<-RegistryVotingContract.instance(authNFT: authNFTRef), to: RegistryVotingContract.TenantStoragePath)
 
-      log(signer)
-
       // link the Tenant resource to the public
       //
       // NOTE: this is commented out for now because it is dangerous to link

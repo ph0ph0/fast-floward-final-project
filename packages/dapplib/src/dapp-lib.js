@@ -30,6 +30,29 @@ module.exports = class DappLib {
     };
   }
 
+  static async issueBallot(data) {
+    let result = await Blockchain.post(
+      {
+        config: DappLib.getConfig(),
+        roles: {
+          proposer: data.signer,
+        },
+      },
+      "voting_issue_ballot",
+      {
+        signer: { value: data.signer, type: t.Address },
+        recipient: { value: data.recipient, type: t.Address },
+        proposalId: { value: data.proposalId, type: t.UInt64 },
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: "Transaction Hash",
+      result: result.callData.transactionId,
+    };
+  }
+
   static async listProposals(data) {
     let result = await Blockchain.get(
       {
@@ -38,14 +61,14 @@ module.exports = class DappLib {
       },
       "voting_list_proposals",
       {
-        account: { value: data.account, type: t.Address },
+        tenantAccount: { value: data.account, type: t.Address },
       }
     );
 
     return {
-      type: DappLib.DAPP_RESULT_BIG_NUMBER,
+      type: DappLib.DAPP_RESULT_STRING,
       label: "Proposals",
-      result: result.callData,
+      result: JSON.stringify(result.callData),
     };
   }
 
