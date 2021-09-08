@@ -42,7 +42,7 @@ module.exports = class DappLib {
       {
         signer: { value: data.signer, type: t.Address },
         recipient: { value: data.recipient, type: t.Address },
-        proposalId: { value: data.proposalId, type: t.UInt64 },
+        proposalId: { value: parseInt(data.proposalId), type: t.UInt64 },
       }
     );
 

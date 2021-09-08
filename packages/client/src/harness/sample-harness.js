@@ -105,7 +105,7 @@ export default class SampleHarness extends LitElement {
           description="Issue Ballot to another user"
           action="issueBallot"
           method="post"
-          fields="signer recipeint proposalId"
+          fields="signer recipient proposalId"
         >
           <account-widget field="signer" label="Issuer"> </account-widget>
           <account-widget field="recipient" label="Recipient"> </account-widget>

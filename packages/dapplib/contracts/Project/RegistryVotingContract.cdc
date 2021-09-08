@@ -22,6 +22,7 @@ pub contract RegistryVotingContract: RegistryInterface {
         access(contract) fun incrementTotalProposals():UInt64
         access(contract) fun addProposal(proposal: Proposal)
         access(contract) fun endVotingFor(proposalId: UInt64) 
+        access(contract) fun createBallot(proposalId: UInt64, voter: Address): @Ballot
         
         pub fun adminRef(): &Admin
     }
@@ -86,6 +87,10 @@ pub contract RegistryVotingContract: RegistryInterface {
                 }
                 index = index + 1
             }
+        }
+
+        access(contract) fun createBallot(proposalId: UInt64, voter: Address): @Ballot {
+            return <- create Ballot(_proposalId: proposalId, _voter: voter)
         }
 
         pub fun adminRef(): &Admin {
@@ -175,11 +180,11 @@ pub contract RegistryVotingContract: RegistryInterface {
             _tenantRef.addProposal(proposal: proposal)
         }
 
-        pub fun issueBallot( proposalId: UInt64, voter: Address): @Ballot {
-            return <- create Ballot(_proposalId: proposalId, _voter: voter) 
+        pub fun issueBallot(_tenantRef: &Tenant{ITenantAdmin}, proposalId: UInt64, voter: Address): @Ballot {
+            return <- _tenantRef.createBallot(proposalId: proposalId, voter: voter) 
         }
 
-        pub fun closeVotingFor(proposalId: UInt64, _tenantRef: &Tenant{ITenantAdmin}) {
+        pub fun closeVotingFor(_tenantRef: &Tenant{ITenantAdmin}, proposalId: UInt64 ) {
             _tenantRef.endVotingFor(proposalId: proposalId)
         }
 
@@ -211,9 +216,7 @@ pub contract RegistryVotingContract: RegistryInterface {
             self.voter = _voter
 
             // Need to save this to the storage of the new owner when initialised.
-            
         }
-
     }
 
     init() {
