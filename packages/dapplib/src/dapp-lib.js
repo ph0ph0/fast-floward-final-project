@@ -36,6 +36,7 @@ module.exports = class DappLib {
         config: DappLib.getConfig(),
         roles: {
           proposer: data.signer,
+          authorizers: [data.signer, data.recipient],
         },
       },
       "voting_issue_ballot",

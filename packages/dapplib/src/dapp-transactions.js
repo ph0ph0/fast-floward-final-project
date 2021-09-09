@@ -118,20 +118,22 @@ module.exports = class DappTransactions {
 				
 				// Allows an account with an Admin resource to issue a Ballot to another user.
 				
-				transaction(proposalId: UInt64, recipient: Address) {
+				transaction(_signer: Address, _recipient: Address, _proposalId: UInt64, ) {
 				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
 				    let adminRef: &RegistryVotingContract.Admin
-				    prepare(signer: AuthAccount) {
+				    prepare(signer: AuthAccount, recipient: AuthAccount) {
 				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>
 				            (from: RegistryVotingContract.TenantStoragePath) ?? panic("Couldn't get tenant ref")
 				        self.adminRef = self.tenantRef.adminRef()
+				
+				        let ballot <- self.adminRef.issueBallot(_tenantRef: self.tenantRef, proposalId: _proposalId, voter: recipient.address)
+				        recipient.save(<- ballot, to: RegistryVotingContract.BallotStoragePath)
+				
+				        log("saved ballot to storage")
 				    }
 				
 				    execute {
-				        let ballot <- self.adminRef.issueBallot(_tenantRef: self.tenantRef, proposalId: proposalId, voter: recipient)
-				        getAccount(recipient).save(<- ballot, to: RegistryVotingContract.BallotPublicPath)
 				
-				        log("saved ballot to storage")
 				    }
 				
 				}
