@@ -200,7 +200,7 @@ pub contract RegistryVotingContract: RegistryInterface {
         pub let voter: Address
 
         // decision must be 1 (for) or -1 (against)
-        access(account) fun vote(decision: Int32, tenantRef: &Tenant{ITenantBallot}) {
+        pub fun vote(tenantRef: &Tenant{ITenantBallot}, decision: Int32) {
             pre {
                 decision == 1 || decision == -1: "Decision must be 1 (for) or -1 (against)"
             }
@@ -208,7 +208,6 @@ pub contract RegistryVotingContract: RegistryInterface {
             tenantRef.updateProposalWithVote(proposalId: self.proposalId, vote: decision, voter: self.voter)
 
             // Can the Ballot resource destroy itself after voting?
-
         }
 
         init(_proposalId: UInt64, _voter: Address) {
@@ -216,6 +215,45 @@ pub contract RegistryVotingContract: RegistryInterface {
             self.voter = _voter
 
             // Need to save this to the storage of the new owner when initialised.
+        }
+    }
+
+    pub resource interface IBallotCollection {
+        pub fun deposit(ballot: @Ballot)
+        pub fun listBallots(): [UInt64]
+    }
+
+    pub resource BallotCollection: IBallotCollection {
+        access(self) let ballots: @{UInt64: Ballot}
+
+        pub fun listBallots(): [UInt64] {
+            return self.ballots.keys
+        }
+
+        pub fun deposit(ballot: @Ballot) {
+            let ballot <- ballot
+
+            let proposalId = ballot.proposalId
+
+            let oldBallot <- self.ballots[proposalId] <- ballot
+
+            destroy oldBallot
+        }
+
+        pub fun voteOnProposal(_tenantRef: &Tenant{ITenantBallot}, proposalId: UInt64, decision: Int32) {
+            let ballot <- self.ballots[proposalId]
+            ballot.vote(tenantRef: _tenantRef, decision: decision)
+
+            destroy ballot
+
+        }
+
+        init() {
+            self.ballots <- {}
+        }
+
+        destroy() {
+            destroy self.ballots
         }
     }
 

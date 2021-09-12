@@ -24,25 +24,6 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static registry_has_auth_nft() {
-		return fcl.script`
-				import RegistryService from 0x01cf0e2f2f715450
-				
-				// Checks to see if an account has an AuthNFT
-				
-				pub fun main(tenant: Address): Bool {
-				    let hasAuthNFT = getAccount(tenant).getCapability(RegistryService.AuthPublicPath)
-				                        .borrow<&RegistryService.AuthNFT{RegistryService.IAuthNFT}>()
-				
-				    if hasAuthNFT == nil {
-				        return false
-				    } else {
-				        return true
-				    }
-				}
-		`;
-	}
-
 	static voting_list_proposals() {
 		return fcl.script`
 				
@@ -59,6 +40,25 @@ module.exports = class DappScripts {
 				        return proposalArray
 				    }
 				    return nil
+				}
+		`;
+	}
+
+	static registry_has_auth_nft() {
+		return fcl.script`
+				import RegistryService from 0x01cf0e2f2f715450
+				
+				// Checks to see if an account has an AuthNFT
+				
+				pub fun main(tenant: Address): Bool {
+				    let hasAuthNFT = getAccount(tenant).getCapability(RegistryService.AuthPublicPath)
+				                        .borrow<&RegistryService.AuthNFT{RegistryService.IAuthNFT}>()
+				
+				    if hasAuthNFT == nil {
+				        return false
+				    } else {
+				        return true
+				    }
 				}
 		`;
 	}
