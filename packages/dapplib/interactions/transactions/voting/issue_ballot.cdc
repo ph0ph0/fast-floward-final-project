@@ -10,10 +10,21 @@ transaction(_signer: Address, _recipient: Address, _proposalId: UInt64, ) {
             (from: RegistryVotingContract.TenantStoragePath) ?? panic("Couldn't get tenant ref")
         self.adminRef = self.tenantRef.adminRef()
 
-        let ballot <- self.adminRef.issueBallot(_tenantRef: self.tenantRef, proposalId: _proposalId, voter: recipient.address)
-        recipient.save(<- ballot, to: RegistryVotingContract.BallotStoragePath)
+        if recipient.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath) == nil {
+            let ballotCollection: @RegistryVotingContract.BallotCollection <- RegistryVotingContract.createBallotCollection()
 
-        log("saved ballot to storage")
+            recipient.save(<- ballotCollection, to: RegistryVotingContract.BallotCollectionStoragePath)
+
+            log("Created new ballot collection for recipient and saved to storage")
+        }
+
+        let ballot <- self.adminRef.issueBallot(_tenantRef: self.tenantRef, proposalId: _proposalId, voter: recipient.address)
+        let recipientBallotCollection = recipient.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath) 
+            ?? panic("Couldn't borrow ballot collection from storage")
+
+        recipientBallotCollection.deposit(ballot: <- ballot)
+
+        log("issued ballot to recipient")
     }
 
     execute {

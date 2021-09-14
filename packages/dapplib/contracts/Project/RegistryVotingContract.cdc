@@ -137,8 +137,8 @@ pub contract RegistryVotingContract: RegistryInterface {
     pub let TenantPublicPath: PublicPath
     pub let AdminStoragePath: StoragePath
     pub let AdminPublicPath: PublicPath
-    pub let BallotStoragePath: StoragePath
-    pub let BallotPublicPath: PublicPath
+    pub let BallotCollectionStoragePath: StoragePath
+    pub let BallotCollectionPublicPath: PublicPath
 
     pub struct Proposal {
         // proposalId is incremented each time a Proposal is created
@@ -240,6 +240,7 @@ pub contract RegistryVotingContract: RegistryInterface {
 
             let proposalId = ballot.proposalId
 
+            // Add the token to the dictionary and remove the old one
             let oldBallot <- self.ballots[proposalId] <- ballot
 
             destroy oldBallot
@@ -266,8 +267,8 @@ pub contract RegistryVotingContract: RegistryInterface {
         self.TenantPublicPath = /public/RegistryVotingContractTenant
         self.AdminStoragePath = /storage/VotingAdmin
         self.AdminPublicPath = /public/VotingAdmin
-        self.BallotStoragePath = /storage/VotingBallot
-        self.BallotPublicPath = /public/VotingBallot
+        self.BallotCollectionStoragePath = /storage/BallotCollection
+        self.BallotCollectionPublicPath = /public/BallotCollection
 
         emit ContractInitialized() 
     }

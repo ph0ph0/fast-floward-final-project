@@ -9,6 +9,7 @@ pub fun main(tenant: Address): Bool {
     if hasAuthNFT == nil {
         return false
     } else {
+        log("They have an auth NFT")
         return true
     }
 }
