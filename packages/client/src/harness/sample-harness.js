@@ -115,6 +115,25 @@ export default class SampleHarness extends LitElement {
             placeholder="ID of proposal to issue ballot for"
           ></text-widget>
         </action-card>
+        <action-card
+          title="Vote Using Ballot"
+          description="Vote on issued ballot"
+          action="voteOnBallot"
+          method="post"
+          fields="issuer signer proposalId decision"
+        >
+          <account-widget field="issuer" label="Issuer"> </account-widget>
+          <account-widget field="signer" label="Signer"> </account-widget>
+          <text-widget
+            field="proposalId"
+            label="Proposal ID"
+            placeholder="ID of proposal to issue ballot for"
+          ></text-widget>
+          <switch-widget
+            field="decision"
+            label="In favour (tick)/Against (unticked)"
+          ></switch-widget>
+        </action-card>
       </page-body>
       <page-panel id="resultPanel"></page-panel>
     `;

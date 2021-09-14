@@ -26,7 +26,7 @@ transaction() {
       // If you add resource interfaces that Tenant must implement, you can
       // add those here and then uncomment the line below.
       // 
-      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantPublic}>
+      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantPublic, RegistryVotingContract.ITenantBallot}>
         (RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
     }
   }

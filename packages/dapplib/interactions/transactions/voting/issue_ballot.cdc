@@ -27,8 +27,6 @@ transaction(_signer: Address, _recipient: Address, _proposalId: UInt64, ) {
         log("issued ballot to recipient")
     }
 
-    execute {
-
-    }
+    execute {}
 
 }

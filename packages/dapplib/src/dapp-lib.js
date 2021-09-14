@@ -73,6 +73,30 @@ module.exports = class DappLib {
     };
   }
 
+  static async voteOnBallot(data) {
+    let result = await Blockchain.post(
+      {
+        config: DappLib.getConfig(),
+        roles: {
+          proposer: data.signer,
+        },
+      },
+      "voting_vote_on_ballot",
+      {
+        issuer: { value: data.issuer, type: t.Address },
+        signer: { value: data.signer, type: t.Address },
+        proposalId: { value: parseInt(data.proposalId), type: t.UInt64 },
+        decision: { value: data.decision, type: t.Bool },
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: "Transaction Hash",
+      result: result.callData.transactionId,
+    };
+  }
+
   /********** FLOW TOKEN **********/
 
   static async getBalance(data) {

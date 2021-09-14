@@ -69,7 +69,7 @@ module.exports = class DappTransactions {
 				      // If you add resource interfaces that Tenant must implement, you can
 				      // add those here and then uncomment the line below.
 				      // 
-				      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantPublic}>
+				      signer.link<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantPublic, RegistryVotingContract.ITenantBallot}>
 				        (RegistryVotingContract.TenantPublicPath, target: RegistryVotingContract.TenantStoragePath)
 				    }
 				  }
@@ -79,36 +79,6 @@ module.exports = class DappTransactions {
 				  }
 				}
 				
-		`;
-	}
-
-	static voting_create_proposal() {
-		return fcl.transaction`
-				import RegistryVotingContract from 0x01cf0e2f2f715450
-				
-				// Allows an Admin to create a new proposal.
-				
-				transaction(proposalDesc: String) {
-				
-				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
-				    let adminRef: &RegistryVotingContract.Admin
-				
-				    prepare(signer: AuthAccount){
-				
-				        if (proposalDesc.length == 0) {
-				            panic("Proposal description must be provided")
-				        }
-				
-				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
-				            ?? panic("Couldn't borrow the tenant resource")
-				
-				        self.adminRef = self.tenantRef.adminRef()
-				    }
-				
-				    execute{
-				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
-				    }
-				}
 		`;
 	}
 
@@ -143,8 +113,59 @@ module.exports = class DappTransactions {
 				        log("issued ballot to recipient")
 				    }
 				
-				    execute {
+				    execute {}
 				
+				}
+		`;
+	}
+
+	static voting_create_proposal() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// Allows an Admin to create a new proposal.
+				
+				transaction(proposalDesc: String) {
+				
+				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
+				    let adminRef: &RegistryVotingContract.Admin
+				
+				    prepare(signer: AuthAccount){
+				
+				        if (proposalDesc.length == 0) {
+				            panic("Proposal description must be provided")
+				        }
+				
+				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
+				            ?? panic("Couldn't borrow the tenant resource")
+				
+				        self.adminRef = self.tenantRef.adminRef()
+				    }
+				
+				    execute{
+				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
+				    }
+				}
+		`;
+	}
+
+	static voting_vote_on_ballot() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				transaction (issuer: Address, signer: Address, proposalId: UInt64, decision: Bool) {
+				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantBallot}
+				    let ballotCollectionRef: &RegistryVotingContract.BallotCollection
+				
+				    prepare(signer: AuthAccount) {
+				        self.tenantRef = getAccount(issuer).getCapability<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantBallot}>(RegistryVotingContract.TenantPublicPath).borrow()
+				            ?? panic("Couldn't get a reference to the tenant ref")
+				        self.ballotCollectionRef = signer.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath)
+				            ?? panic("Couldn't get ballot collection ref")
+				    }
+				    
+				    execute {
+				        self.ballotCollectionRef.voteOnProposal(_tenantRef: self.tenantRef, proposalId: proposalId, decision: decision)
 				    }
 				
 				}
