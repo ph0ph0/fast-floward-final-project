@@ -29,7 +29,7 @@ pub contract RegistryVotingContract: RegistryInterface {
 
     pub resource interface ITenantBallot {
         pub var totalProposals: UInt64
-        access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Int32, voter: Address)
+        access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Bool, voter: Address)
 
     }
 
@@ -64,11 +64,11 @@ pub contract RegistryVotingContract: RegistryInterface {
             emit ProposalCreated(proposalId: proposal.proposalId, proposalDesc: proposal.proposalDescription)
         }
 
-        access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Int32, voter: Address) {
+        access(contract) fun updateProposalWithVote(proposalId: UInt64, vote: Bool, voter: Address) {
             for prop in self.proposals {
                 if (prop.proposalId == proposalId) {
                     prop.totalVotes = prop.totalVotes + 1
-                    prop.voteSum = prop.voteSum + vote
+                    prop.voteSum = vote == true ? prop.voteSum + 1 : prop.voteSum - 1
                     prop.votedOnBy.append(voter)
                     emit VoteCast(voter: voter, proposalId: proposalId)
                     break
@@ -200,10 +200,7 @@ pub contract RegistryVotingContract: RegistryInterface {
         pub let voter: Address
 
         // decision must be 1 (for) or -1 (against)
-        pub fun vote(tenantRef: &Tenant{ITenantBallot}, decision: Int32) {
-            pre {
-                decision == 1 || decision == -1: "Decision must be 1 (for) or -1 (against)"
-            }
+        pub fun vote(tenantRef: &Tenant{ITenantBallot}, decision: Bool) {
             // Update proposal in tenant
             tenantRef.updateProposalWithVote(proposalId: self.proposalId, vote: decision, voter: self.voter)
 
@@ -223,8 +220,16 @@ pub contract RegistryVotingContract: RegistryInterface {
         pub fun listBallots(): [UInt64]
     }
 
+    pub fun createBallotCollection(): @BallotCollection {
+        return <- create BallotCollection()
+    }   
+
     pub resource BallotCollection: IBallotCollection {
         access(self) let ballots: @{UInt64: Ballot}
+
+        init() {
+            self.ballots <- {}
+        }
 
         pub fun listBallots(): [UInt64] {
             return self.ballots.keys
@@ -240,16 +245,11 @@ pub contract RegistryVotingContract: RegistryInterface {
             destroy oldBallot
         }
 
-        pub fun voteOnProposal(_tenantRef: &Tenant{ITenantBallot}, proposalId: UInt64, decision: Int32) {
-            let ballot <- self.ballots[proposalId]
+        pub fun voteOnProposal(_tenantRef: &Tenant{ITenantBallot}, proposalId: UInt64, decision: Bool) {
+            let ballot <- self.ballots.remove(key: proposalId) ?? panic("missing proposal")
             ballot.vote(tenantRef: _tenantRef, decision: decision)
-
             destroy ballot
 
-        }
-
-        init() {
-            self.ballots <- {}
         }
 
         destroy() {
