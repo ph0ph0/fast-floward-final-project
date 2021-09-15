@@ -5,6 +5,10 @@ pub contract RegistryVotingContract: RegistryInterface {
 
     // ToDo:
     // 1) Add more events where appropriate
+    // 2) Add 'get votes on proposal' functionality
+    // 3) Complete 'end voting for propsal' functionality
+    // 4) Add "list finished proposals" functionality
+    // 5) Add vote delegation functionality
 
     // Events
     //

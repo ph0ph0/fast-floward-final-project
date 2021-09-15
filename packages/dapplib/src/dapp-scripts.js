@@ -24,26 +24,6 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static voting_list_proposals() {
-		return fcl.script`
-				
-				import RegistryVotingContract from 0x01cf0e2f2f715450
-				
-				// lists all the proposals for a given Tenant resource that is associated with an account.
-				
-				pub fun main(tenantAccount: Address): [RegistryVotingContract.Proposal]? {
-				
-				    let publicAccount = getAccount(tenantAccount)
-				    if let tenantRef = publicAccount.getCapability<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantPublic}>
-				            (RegistryVotingContract.TenantPublicPath).borrow() {
-				        let proposalArray = RegistryVotingContract.listProposals(_tenantRef: tenantRef)
-				        return proposalArray
-				    }
-				    return nil
-				}
-		`;
-	}
-
 	static voting_list_ballots() {
 		return fcl.script`
 				
@@ -58,6 +38,26 @@ module.exports = class DappScripts {
 				            (RegistryVotingContract.BallotCollectionPublicPath).borrow() {
 				        let ballotArray = ballotCollectionRef.listBallots()
 				        return ballotArray
+				    }
+				    return nil
+				}
+		`;
+	}
+
+	static voting_list_proposals() {
+		return fcl.script`
+				
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// lists all the proposals for a given Tenant resource that is associated with an account.
+				
+				pub fun main(tenantAccount: Address): [RegistryVotingContract.Proposal]? {
+				
+				    let publicAccount = getAccount(tenantAccount)
+				    if let tenantRef = publicAccount.getCapability<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantPublic}>
+				            (RegistryVotingContract.TenantPublicPath).borrow() {
+				        let proposalArray = RegistryVotingContract.listProposals(_tenantRef: tenantRef)
+				        return proposalArray
 				    }
 				    return nil
 				}
