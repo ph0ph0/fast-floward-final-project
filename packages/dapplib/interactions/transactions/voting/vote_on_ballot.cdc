@@ -10,7 +10,7 @@ transaction (issuer: Address, signer: Address, proposalId: UInt64, decision: Boo
         self.ballotCollectionRef = signer.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath)
             ?? panic("Couldn't get ballot collection ref")
     }
-    
+
     execute {
         self.ballotCollectionRef.voteOnProposal(_tenantRef: self.tenantRef, proposalId: proposalId, decision: decision)
     }

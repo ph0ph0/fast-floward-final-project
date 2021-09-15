@@ -82,6 +82,36 @@ module.exports = class DappTransactions {
 		`;
 	}
 
+	static voting_create_proposal() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// Allows an Admin to create a new proposal.
+				
+				transaction(proposalDesc: String) {
+				
+				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
+				    let adminRef: &RegistryVotingContract.Admin
+				
+				    prepare(signer: AuthAccount){
+				
+				        if (proposalDesc.length == 0) {
+				            panic("Proposal description must be provided")
+				        }
+				
+				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
+				            ?? panic("Couldn't borrow the tenant resource")
+				
+				        self.adminRef = self.tenantRef.adminRef()
+				    }
+				
+				    execute{
+				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
+				    }
+				}
+		`;
+	}
+
 	static voting_issue_ballot() {
 		return fcl.transaction`
 				import RegistryVotingContract from 0x01cf0e2f2f715450
@@ -115,36 +145,6 @@ module.exports = class DappTransactions {
 				
 				    execute {}
 				
-				}
-		`;
-	}
-
-	static voting_create_proposal() {
-		return fcl.transaction`
-				import RegistryVotingContract from 0x01cf0e2f2f715450
-				
-				// Allows an Admin to create a new proposal.
-				
-				transaction(proposalDesc: String) {
-				
-				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
-				    let adminRef: &RegistryVotingContract.Admin
-				
-				    prepare(signer: AuthAccount){
-				
-				        if (proposalDesc.length == 0) {
-				            panic("Proposal description must be provided")
-				        }
-				
-				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
-				            ?? panic("Couldn't borrow the tenant resource")
-				
-				        self.adminRef = self.tenantRef.adminRef()
-				    }
-				
-				    execute{
-				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
-				    }
 				}
 		`;
 	}

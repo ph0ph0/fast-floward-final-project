@@ -7,20 +7,23 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappScripts {
 
-	static flowtoken_get_balance() {
+	static registry_has_auth_nft() {
 		return fcl.script`
-				import FungibleToken from 0xee82856bf20e2aa6
-				import FlowToken from 0x0ae53cb6e3f42a79
+				import RegistryService from 0x01cf0e2f2f715450
 				
-				pub fun main(account: Address): UFix64 {
+				// Checks to see if an account has an AuthNFT
 				
-				    let vaultRef = getAccount(account)
-				        .getCapability(/public/flowTokenBalance)
-				        .borrow<&FlowToken.Vault{FungibleToken.Balance}>()
-				        ?? panic("Could not borrow Balance reference to the Vault")
+				pub fun main(tenant: Address): Bool {
+				    let hasAuthNFT = getAccount(tenant).getCapability(RegistryService.AuthPublicPath)
+				                        .borrow<&RegistryService.AuthNFT{RegistryService.IAuthNFT}>()
 				
-				    return vaultRef.balance
-				}  
+				    if hasAuthNFT == nil {
+				        return false
+				    } else {
+				        log("They have an auth NFT")
+				        return true
+				    }
+				}
 		`;
 	}
 
@@ -44,23 +47,20 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static registry_has_auth_nft() {
+	static flowtoken_get_balance() {
 		return fcl.script`
-				import RegistryService from 0x01cf0e2f2f715450
+				import FungibleToken from 0xee82856bf20e2aa6
+				import FlowToken from 0x0ae53cb6e3f42a79
 				
-				// Checks to see if an account has an AuthNFT
+				pub fun main(account: Address): UFix64 {
 				
-				pub fun main(tenant: Address): Bool {
-				    let hasAuthNFT = getAccount(tenant).getCapability(RegistryService.AuthPublicPath)
-				                        .borrow<&RegistryService.AuthNFT{RegistryService.IAuthNFT}>()
+				    let vaultRef = getAccount(account)
+				        .getCapability(/public/flowTokenBalance)
+				        .borrow<&FlowToken.Vault{FungibleToken.Balance}>()
+				        ?? panic("Could not borrow Balance reference to the Vault")
 				
-				    if hasAuthNFT == nil {
-				        return false
-				    } else {
-				        log("They have an auth NFT")
-				        return true
-				    }
-				}
+				    return vaultRef.balance
+				}  
 		`;
 	}
 
