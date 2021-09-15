@@ -116,6 +116,15 @@ export default class SampleHarness extends LitElement {
           ></text-widget>
         </action-card>
         <action-card
+          title="List ballots"
+          description="Get ballots that have been issued to an account"
+          action="listBallots"
+          method="get"
+          fields="account"
+        >
+          <account-widget field="account" label="Account"> </account-widget>
+        </action-card>
+        <action-card
           title="Vote Using Ballot"
           description="Vote on issued ballot"
           action="voteOnBallot"

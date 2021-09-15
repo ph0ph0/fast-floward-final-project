@@ -73,6 +73,25 @@ module.exports = class DappLib {
     };
   }
 
+  static async listBallots(data) {
+    let result = await Blockchain.get(
+      {
+        config: DappLib.getConfig(),
+        roles: {},
+      },
+      "voting_list_ballots",
+      {
+        account: { value: data.account, type: t.Address },
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_STRING,
+      label: "Proposals",
+      result: JSON.stringify(result.callData),
+    };
+  }
+
   static async voteOnBallot(data) {
     let result = await Blockchain.post(
       {

@@ -15,6 +15,9 @@ transaction(_signer: Address, _recipient: Address, _proposalId: UInt64, ) {
 
             recipient.save(<- ballotCollection, to: RegistryVotingContract.BallotCollectionStoragePath)
 
+            recipient.link<&RegistryVotingContract.BallotCollection{RegistryVotingContract.IBallotCollection}>
+                (RegistryVotingContract.BallotCollectionPublicPath, target: RegistryVotingContract.BallotCollectionStoragePath)
+
             log("Created new ballot collection for recipient and saved to storage")
         }
 

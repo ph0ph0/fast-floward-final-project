@@ -7,6 +7,101 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappTransactions {
 
+	static voting_create_proposal() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// Allows an Admin to create a new proposal.
+				
+				transaction(proposalDesc: String) {
+				
+				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
+				    let adminRef: &RegistryVotingContract.Admin
+				
+				    prepare(signer: AuthAccount){
+				
+				        if (proposalDesc.length == 0) {
+				            panic("Proposal description must be provided")
+				        }
+				
+				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
+				            ?? panic("Couldn't borrow the tenant resource")
+				
+				        self.adminRef = self.tenantRef.adminRef()
+				    }
+				
+				    execute{
+				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
+				    }
+				}
+		`;
+	}
+
+	static voting_issue_ballot() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				// Allows an account with an Admin resource to issue a Ballot to another user.
+				
+				transaction(_signer: Address, _recipient: Address, _proposalId: UInt64, ) {
+				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
+				    let adminRef: &RegistryVotingContract.Admin
+				    prepare(signer: AuthAccount, recipient: AuthAccount) {
+				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>
+				            (from: RegistryVotingContract.TenantStoragePath) ?? panic("Couldn't get tenant ref")
+				        self.adminRef = self.tenantRef.adminRef()
+				
+				        if recipient.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath) == nil {
+				            let ballotCollection: @RegistryVotingContract.BallotCollection <- RegistryVotingContract.createBallotCollection()
+				
+				            recipient.save(<- ballotCollection, to: RegistryVotingContract.BallotCollectionStoragePath)
+				
+				            recipient.link<&RegistryVotingContract.BallotCollection{RegistryVotingContract.IBallotCollection}>
+				                (RegistryVotingContract.BallotCollectionPublicPath, target: RegistryVotingContract.BallotCollectionStoragePath)
+				
+				            log("Created new ballot collection for recipient and saved to storage")
+				        }
+				
+				        let ballot <- self.adminRef.issueBallot(_tenantRef: self.tenantRef, proposalId: _proposalId, voter: recipient.address)
+				        let recipientBallotCollection = recipient.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath) 
+				            ?? panic("Couldn't borrow ballot collection from storage")
+				
+				        recipientBallotCollection.deposit(ballot: <- ballot)
+				
+				        log("issued ballot to recipient")
+				    }
+				
+				    execute {}
+				
+				}
+		`;
+	}
+
+	static voting_vote_on_ballot() {
+		return fcl.transaction`
+				import RegistryVotingContract from 0x01cf0e2f2f715450
+				
+				transaction (issuer: Address, signer: Address, proposalId: UInt64, decision: Bool) {
+				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantBallot}
+				    let ballotCollectionRef: &RegistryVotingContract.BallotCollection
+				
+				    prepare(signer: AuthAccount) {
+				        self.tenantRef = getAccount(issuer).getCapability<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantBallot}>(RegistryVotingContract.TenantPublicPath).borrow()
+				            ?? panic("Couldn't get a reference to the tenant ref")
+				        self.ballotCollectionRef = signer.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath)
+				            ?? panic("Couldn't get ballot collection ref")
+				    }
+				
+				    execute {
+				        self.ballotCollectionRef.voteOnProposal(_tenantRef: self.tenantRef, proposalId: proposalId, decision: decision)
+				    }
+				
+				}
+				
+				
+		`;
+	}
+
 	static registry_receive_auth_nft() {
 		return fcl.transaction`
 				import RegistryService from 0x01cf0e2f2f715450
@@ -79,96 +174,6 @@ module.exports = class DappTransactions {
 				  }
 				}
 				
-		`;
-	}
-
-	static voting_create_proposal() {
-		return fcl.transaction`
-				import RegistryVotingContract from 0x01cf0e2f2f715450
-				
-				// Allows an Admin to create a new proposal.
-				
-				transaction(proposalDesc: String) {
-				
-				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
-				    let adminRef: &RegistryVotingContract.Admin
-				
-				    prepare(signer: AuthAccount){
-				
-				        if (proposalDesc.length == 0) {
-				            panic("Proposal description must be provided")
-				        }
-				
-				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>(from: RegistryVotingContract.TenantStoragePath) 
-				            ?? panic("Couldn't borrow the tenant resource")
-				
-				        self.adminRef = self.tenantRef.adminRef()
-				    }
-				
-				    execute{
-				        self.adminRef.createProposal(_tenantRef: self.tenantRef, proposalDes: proposalDesc)
-				    }
-				}
-		`;
-	}
-
-	static voting_issue_ballot() {
-		return fcl.transaction`
-				import RegistryVotingContract from 0x01cf0e2f2f715450
-				
-				// Allows an account with an Admin resource to issue a Ballot to another user.
-				
-				transaction(_signer: Address, _recipient: Address, _proposalId: UInt64, ) {
-				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}
-				    let adminRef: &RegistryVotingContract.Admin
-				    prepare(signer: AuthAccount, recipient: AuthAccount) {
-				        self.tenantRef = signer.borrow<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantAdmin}>
-				            (from: RegistryVotingContract.TenantStoragePath) ?? panic("Couldn't get tenant ref")
-				        self.adminRef = self.tenantRef.adminRef()
-				
-				        if recipient.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath) == nil {
-				            let ballotCollection: @RegistryVotingContract.BallotCollection <- RegistryVotingContract.createBallotCollection()
-				
-				            recipient.save(<- ballotCollection, to: RegistryVotingContract.BallotCollectionStoragePath)
-				
-				            log("Created new ballot collection for recipient and saved to storage")
-				        }
-				
-				        let ballot <- self.adminRef.issueBallot(_tenantRef: self.tenantRef, proposalId: _proposalId, voter: recipient.address)
-				        let recipientBallotCollection = recipient.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath) 
-				            ?? panic("Couldn't borrow ballot collection from storage")
-				
-				        recipientBallotCollection.deposit(ballot: <- ballot)
-				
-				        log("issued ballot to recipient")
-				    }
-				
-				    execute {}
-				
-				}
-		`;
-	}
-
-	static voting_vote_on_ballot() {
-		return fcl.transaction`
-				import RegistryVotingContract from 0x01cf0e2f2f715450
-				
-				transaction (issuer: Address, signer: Address, proposalId: UInt64, decision: Bool) {
-				    let tenantRef: &RegistryVotingContract.Tenant{RegistryVotingContract.ITenantBallot}
-				    let ballotCollectionRef: &RegistryVotingContract.BallotCollection
-				
-				    prepare(signer: AuthAccount) {
-				        self.tenantRef = getAccount(issuer).getCapability<&RegistryVotingContract.Tenant{RegistryVotingContract.ITenantBallot}>(RegistryVotingContract.TenantPublicPath).borrow()
-				            ?? panic("Couldn't get a reference to the tenant ref")
-				        self.ballotCollectionRef = signer.borrow<&RegistryVotingContract.BallotCollection>(from: RegistryVotingContract.BallotCollectionStoragePath)
-				            ?? panic("Couldn't get ballot collection ref")
-				    }
-				    
-				    execute {
-				        self.ballotCollectionRef.voteOnProposal(_tenantRef: self.tenantRef, proposalId: proposalId, decision: decision)
-				    }
-				
-				}
 		`;
 	}
 

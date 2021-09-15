@@ -16,3 +16,4 @@ transaction (issuer: Address, signer: Address, proposalId: UInt64, decision: Boo
     }
 
 }
+
